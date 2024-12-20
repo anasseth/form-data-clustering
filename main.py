@@ -164,16 +164,16 @@ if file or google_sheet_url:
                     st.plotly_chart(plot_heatmap(corr_matrix), 
                                   use_container_width=True)
                     
-                    # Filter data for selected columns
-                    analysis_data = st.session_state.data[selected_columns].copy()
-                    # Suggest exclusions based on correlation and variance
-                    features_to_exclude = suggest_exclusions(analysis_data)
-                    if features_to_exclude:
-                        st.warning(f"Suggested features to exclude for better clustering: {', '.join(features_to_exclude)}")
-                        # Optionally, you can allow users to confirm exclusion
-                        confirm_exclusion = st.checkbox("Exclude suggested features", value=True)
-                        if confirm_exclusion:
-                            analysis_data.drop(columns=features_to_exclude, inplace=True, errors='ignore')
+                    # # Filter data for selected columns
+                    # analysis_data = st.session_state.data[selected_columns].copy()
+                    # # Suggest exclusions based on correlation and variance
+                    # features_to_exclude = suggest_exclusions(analysis_data)
+                    # if features_to_exclude:
+                    #     st.warning(f"Suggested features to exclude for better clustering: {', '.join(features_to_exclude)}")
+                    #     # Optionally, you can allow users to confirm exclusion
+                    #     confirm_exclusion = st.checkbox("Exclude suggested features", value=True)
+                    #     if confirm_exclusion:
+                    #         analysis_data.drop(columns=features_to_exclude, inplace=True, errors='ignore')
                     
                     # Download results
                     clustered_data["Groups"]=cluster_data["cluster_labels"]
