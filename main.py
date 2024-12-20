@@ -51,6 +51,26 @@ def explain_silhouette_score(score):
                  - Consider different features or parameters
                  - Data might not have clear group structure"""
 
+def suggest_exclusions(data, correlation_threshold=0.9, variance_threshold=0.01):
+    # Calculate the correlation matrix
+    correlation_matrix = data.corr()
+    
+    # Identify highly correlated features
+    correlated_features = set()
+    for i in range(len(correlation_matrix.columns)):
+        for j in range(i):
+            if abs(correlation_matrix.iloc[i, j]) > correlation_threshold:
+                colname = correlation_matrix.columns[i]
+                correlated_features.add(colname)
+    
+    # Identify low variance features
+    low_variance_features = data.columns[data.var() < variance_threshold]
+    
+    # Combine suggestions
+    features_to_exclude = correlated_features.union(set(low_variance_features))
+    
+    return features_to_exclude
+
 # Streamlit UI
 st.title("Grouping Form Data")
 
@@ -143,6 +163,17 @@ if file or google_sheet_url:
                     st.markdown("This heatmap displays the correlation between different features in the dataset. Darker colors indicate stronger correlations.")
                     st.plotly_chart(plot_heatmap(corr_matrix), 
                                   use_container_width=True)
+                    
+                    # Filter data for selected columns
+                    analysis_data = st.session_state.data[selected_columns].copy()
+                    # Suggest exclusions based on correlation and variance
+                    features_to_exclude = suggest_exclusions(analysis_data)
+                    if features_to_exclude:
+                        st.warning(f"Suggested features to exclude for better clustering: {', '.join(features_to_exclude)}")
+                        # Optionally, you can allow users to confirm exclusion
+                        confirm_exclusion = st.checkbox("Exclude suggested features", value=True)
+                        if confirm_exclusion:
+                            analysis_data.drop(columns=features_to_exclude, inplace=True, errors='ignore')
                     
                     # Download results
                     clustered_data["Groups"]=cluster_data["cluster_labels"]

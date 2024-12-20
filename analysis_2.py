@@ -330,7 +330,7 @@ def plot_heatmap(correlation_matrix):
     fig = px.imshow(
         correlation_matrix, 
         text_auto=True, 
-        color_continuous_scale=[[0, 'green'], [0.5, 'red'], [1.0, 'rgb(0, 0, 255)']],
+        color_continuous_scale=px.colors.sequential.Plasma,  
         title="Feature Correlation Heatmap",
         width=800,  # Set the desired width
         height=600  # Set the desired height
