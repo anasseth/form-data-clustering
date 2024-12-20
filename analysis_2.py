@@ -18,6 +18,85 @@ import plotly.graph_objects as go
 import plotly.express as px
 import streamlit as st
 
+# def cluster_analysis(data):
+#     # Step 1: Preprocess the Data
+#     label_encoders = {}
+#     for col in data.select_dtypes(include='object').columns:
+#         le = LabelEncoder()
+#         data[col] = le.fit_transform(data[col])
+#         label_encoders[col] = le
+
+#     # Scale the numerical data
+#     scaler = StandardScaler()
+#     scaled_data = scaler.fit_transform(data)
+
+#     # Step 2: PCA for Dimensionality Reduction
+#     pca = PCA(n_components=2)
+#     reduced_data = pca.fit_transform(scaled_data)
+
+#     # Step 3: Elbow Method for Optimal Clusters
+#     wcss = []
+#     cluster_range = range(8, 15)  # Focus on clusters between 8 and 15
+#     for k in cluster_range:
+#         kmeans = KMeans(n_clusters=k, random_state=42)
+#         kmeans.fit(reduced_data)
+#         wcss.append(kmeans.inertia_)
+
+#     # Find the initial optimal number of clusters
+#     elbow = KneeLocator(cluster_range, wcss, curve="convex", direction="decreasing")
+#     optimal_clusters = elbow.knee if elbow.knee else 8  # Default to 8 clusters if elbow fails
+
+#     # Step 4: Enforce Cluster Size Constraints
+#     def find_valid_clusters(data, optimal_k, min_size=8, max_size=10, max_retries=10):
+#         best_kmeans = None
+#         best_labels = None
+#         silhouette_best = -1
+        
+#         # Adjust cluster count dynamically
+#         for k in range(optimal_k, 7, -1):  # Start from optimal_k and go down to 8
+#             for random_state in range(max_retries):  # Retry clustering with different seeds
+#                 kmeans = KMeans(n_clusters=k, random_state=random_state)
+#                 labels = kmeans.fit_predict(data)
+#                 cluster_sizes = np.bincount(labels)
+
+#                 # Check if all cluster sizes meet constraints
+#                 if all(min_size <= size <= max_size for size in cluster_sizes):
+#                     silhouette_avg = silhouette_score(data, labels)
+#                     if silhouette_avg > silhouette_best:
+#                         silhouette_best = silhouette_avg
+#                         best_kmeans = kmeans
+#                         best_labels = labels
+#                         print(f"Valid clustering found: k={k}, silhouette={silhouette_avg}")
+            
+#             # Stop if a valid solution is found
+#             if best_kmeans:
+#                 break
+
+#         if not best_kmeans:
+#             print("Warning: No clustering met the size constraints. Returning fallback.")
+#             best_kmeans = KMeans(n_clusters=optimal_k, random_state=42).fit(data)
+#             best_labels = best_kmeans.labels_
+
+#         return best_labels, best_kmeans
+
+#     # Find clusters with constraints
+#     cluster_labels, final_kmeans = find_valid_clusters(reduced_data, optimal_clusters)
+
+#     # Step 5: Silhouette Score
+#     silhouette_avg = silhouette_score(reduced_data, cluster_labels)
+
+#     # Step 6: Correlation Matrix for Heatmap
+#     correlation_matrix = pd.DataFrame(scaled_data, columns=data.columns).corr()
+
+#     # Return results
+#     return (
+#         data, 
+#         silhouette_avg, 
+#         {"wcss": wcss, "range_values": list(cluster_range)},  # Elbow Data
+#         {"reduced_data": reduced_data, "cluster_labels": cluster_labels},  # Cluster Visualization Data
+#         correlation_matrix  # Correlation Heatmap Data
+#     )
+
 def setup_logger():
     # Create logger
     logger = logging.getLogger('clustering')
@@ -159,11 +238,12 @@ def cluster_analysis(data, min_size, max_size):
                 overflow_clusters = np.where(cluster_sizes > max_size)[0]
                 underflow_clusters = np.where(cluster_sizes < min_size)[0]
                 
-                if len(overflow_clusters) > 0 and len(underflow_clusters) > 0:
+                if len(overflow_clusters) > 0:
                     for cluster in overflow_clusters:
-                        while cluster_sizes[cluster] > max_size and len(underflow_clusters) > 0:
+                        while cluster_sizes[cluster] > max_size:
                             points_in_cluster = np.where(labels == cluster)[0]
-                            target_cluster = underflow_clusters[0]  # Always take the first underflow cluster
+                            target_cluster = underflow_clusters[0] if len(underflow_clusters) > 0 else \
+                                           np.argmin(cluster_sizes)
                             
                             distances = np.linalg.norm(
                                 data[points_in_cluster] - kmeans.cluster_centers_[target_cluster], 
@@ -172,9 +252,6 @@ def cluster_analysis(data, min_size, max_size):
                             point_to_move = points_in_cluster[np.argmin(distances)]
                             labels[point_to_move] = target_cluster
                             cluster_sizes = np.bincount(labels)
-                            
-                            # Recalculate underflow clusters after moving points
-                            underflow_clusters = np.where(cluster_sizes < min_size)[0]
                 
                 iteration += 1
             
@@ -202,8 +279,6 @@ def cluster_analysis(data, min_size, max_size):
         correlation_matrix = pd.DataFrame(scaled_data, columns=data.columns).corr()
         
         update_progress(1.0, "Clustering analysis completed successfully!")
-
-        data['Cluster'] = cluster_labels
         
         return (
             data,
@@ -257,7 +332,5 @@ def plot_heatmap(correlation_matrix):
         text_auto=True, 
         color_continuous_scale=[[0, 'green'], [0.5, 'red'], [1.0, 'rgb(0, 0, 255)']],
         title="Feature Correlation Heatmap",
-        width=800,  # Set the desired width
-        height=600  # Set the desired height
     )
     return fig
