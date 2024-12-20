@@ -159,11 +159,12 @@ def cluster_analysis(data, min_size, max_size):
                 overflow_clusters = np.where(cluster_sizes > max_size)[0]
                 underflow_clusters = np.where(cluster_sizes < min_size)[0]
                 
-                if len(overflow_clusters) > 0 and len(underflow_clusters) > 0:
+                if len(overflow_clusters) > 0:
                     for cluster in overflow_clusters:
-                        while cluster_sizes[cluster] > max_size and len(underflow_clusters) > 0:
+                        while cluster_sizes[cluster] > max_size:
                             points_in_cluster = np.where(labels == cluster)[0]
-                            target_cluster = underflow_clusters[0]  # Always take the first underflow cluster
+                            target_cluster = underflow_clusters[0] if len(underflow_clusters) > 0 else \
+                                           np.argmin(cluster_sizes)
                             
                             distances = np.linalg.norm(
                                 data[points_in_cluster] - kmeans.cluster_centers_[target_cluster], 
@@ -172,9 +173,6 @@ def cluster_analysis(data, min_size, max_size):
                             point_to_move = points_in_cluster[np.argmin(distances)]
                             labels[point_to_move] = target_cluster
                             cluster_sizes = np.bincount(labels)
-                            
-                            # Recalculate underflow clusters after moving points
-                            underflow_clusters = np.where(cluster_sizes < min_size)[0]
                 
                 iteration += 1
             
@@ -185,6 +183,9 @@ def cluster_analysis(data, min_size, max_size):
         logger.info(f"Optimal number of clusters determined: {optimal_k}")
         
         cluster_labels = balanced_clustering(reduced_data, optimal_k)
+        
+        # Add cluster labels to the original data
+        data['Cluster'] = cluster_labels
         
         # Calculate final metrics
         update_progress(0.95, "Calculating final metrics...")
@@ -202,8 +203,6 @@ def cluster_analysis(data, min_size, max_size):
         correlation_matrix = pd.DataFrame(scaled_data, columns=data.columns).corr()
         
         update_progress(1.0, "Clustering analysis completed successfully!")
-
-        data['Cluster'] = cluster_labels
         
         return (
             data,
@@ -220,7 +219,7 @@ def cluster_analysis(data, min_size, max_size):
         # Clean up progress bar
         progress_bar.empty()
         status_text.empty()
-        
+       
 def plot_elbow(wcss, range_values):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
