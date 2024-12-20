@@ -6,7 +6,7 @@ from sklearn.metrics import silhouette_score
 from io import BytesIO
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from analysis import cluster_analysis, plot_clusters, plot_elbow, plot_heatmap
+from analysis_2 import cluster_analysis, plot_clusters, plot_elbow, plot_heatmap
 
 def download_excel(data):
     output = BytesIO()
@@ -145,6 +145,7 @@ if file or google_sheet_url:
                                   use_container_width=True)
                     
                     # Download results
+                    clustered_data["Groups"]=cluster_data["cluster_labels"]
                     st.download_button(
                         label="Download Clustered Data as Excel",
                         data=download_excel(clustered_data),
