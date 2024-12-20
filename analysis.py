@@ -159,12 +159,11 @@ def cluster_analysis(data, min_size, max_size):
                 overflow_clusters = np.where(cluster_sizes > max_size)[0]
                 underflow_clusters = np.where(cluster_sizes < min_size)[0]
                 
-                if len(overflow_clusters) > 0:
+                if len(overflow_clusters) > 0 and len(underflow_clusters) > 0:
                     for cluster in overflow_clusters:
-                        while cluster_sizes[cluster] > max_size:
+                        while cluster_sizes[cluster] > max_size and len(underflow_clusters) > 0:
                             points_in_cluster = np.where(labels == cluster)[0]
-                            target_cluster = underflow_clusters[0] if len(underflow_clusters) > 0 else \
-                                           np.argmin(cluster_sizes)
+                            target_cluster = underflow_clusters[0]  # Always take the first underflow cluster
                             
                             distances = np.linalg.norm(
                                 data[points_in_cluster] - kmeans.cluster_centers_[target_cluster], 
@@ -173,6 +172,9 @@ def cluster_analysis(data, min_size, max_size):
                             point_to_move = points_in_cluster[np.argmin(distances)]
                             labels[point_to_move] = target_cluster
                             cluster_sizes = np.bincount(labels)
+                            
+                            # Recalculate underflow clusters after moving points
+                            underflow_clusters = np.where(cluster_sizes < min_size)[0]
                 
                 iteration += 1
             
@@ -255,5 +257,7 @@ def plot_heatmap(correlation_matrix):
         text_auto=True, 
         color_continuous_scale=[[0, 'green'], [0.5, 'red'], [1.0, 'rgb(0, 0, 255)']],
         title="Feature Correlation Heatmap",
+        width=800,  # Set the desired width
+        height=600  # Set the desired height
     )
     return fig

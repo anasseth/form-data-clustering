@@ -124,18 +124,23 @@ if file or google_sheet_url:
                     with explain_col:
                         st.markdown(explain_silhouette_score(silhouette_pca))
                     
-                    # Display Interactive Plots
+                    # Interactive Elbow Method Plot
                     st.subheader("Interactive Elbow Method Plot")
+                    st.markdown("This plot shows the Within-Cluster Sum of Squares (WCSS) for different numbers of clusters. The 'elbow' point indicates the optimal number of clusters.")
                     st.plotly_chart(plot_elbow(elbow_data["wcss"], 
                                              elbow_data["range_values"]), 
                                   use_container_width=True)
                     
+                    # Interactive Clusters After PCA
                     st.subheader("Interactive Clusters After PCA")
+                    st.markdown("This scatter plot visualizes the clusters formed after applying PCA. Each point represents a data point, and colors indicate different clusters.")
                     st.plotly_chart(plot_clusters(cluster_data["reduced_data"], 
                                                 cluster_data["cluster_labels"]), 
                                   use_container_width=True)
                     
+                    # Feature Correlation Heatmap
                     st.subheader("Feature Correlation Heatmap")
+                    st.markdown("This heatmap displays the correlation between different features in the dataset. Darker colors indicate stronger correlations.")
                     st.plotly_chart(plot_heatmap(corr_matrix), 
                                   use_container_width=True)
                     
