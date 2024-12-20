@@ -26,28 +26,28 @@ def fetch_google_sheet(sheet_url):
 
 def explain_silhouette_score(score):
     if score > 0.7:
-        return """📈 **Excellent Clustering (> 0.7)**
+        return """📈 **Excellent Grouping (> 0.7)**
                  - Very well-defined clusters
                  - Strong structure found in the data
                  - High confidence in the grouping results"""
     elif score > 0.5:
-        return """✅ **Good Clustering (0.5 - 0.7)**
-                 - Clear cluster structure
+        return """✅ **Good Grouping (0.5 - 0.7)**
+                 - Clear group structure
                  - Reliable groupings
                  - Some overlap between groups, but generally distinct"""
     elif score > 0.25:
-        return """📊 **Moderate Clustering (0.25 - 0.5)**
-                 - Reasonable cluster structure
+        return """📊 **Moderate Grouping (0.25 - 0.5)**
+                 - Reasonable group structure
                  - Groups are somewhat distinct
-                 - Some overlap between clusters"""
+                 - Some overlap between groups"""
     elif score > 0:
-        return """⚠️ **Weak Clustering (0 - 0.25)**
-                 - Clusters have some structure
+        return """⚠️ **Weak Grouping (0 - 0.25)**
+                 - Groups have some structure
                  - Significant overlap between groups
                  - Consider adjusting parameters or features"""
     else:
-        return """❌ **Poor Clustering (< 0)**
-                 - Clusters may be incorrectly assigned
+        return """❌ **Poor Grouping (< 0)**
+                 - Groups may be incorrectly assigned
                  - Consider different features or parameters
                  - Data might not have clear group structure"""
 
@@ -98,11 +98,11 @@ if file or google_sheet_url:
             min_group_size = col1.number_input("Min Group Size", 
                                              min_value=2, 
                                              max_value=20, 
-                                             value=7)
+                                             value=8)
             max_group_size = col2.number_input("Max Group Size", 
                                              min_value=min_group_size, 
                                              max_value=30, 
-                                             value=12)
+                                             value=10)
             
             if st.button("Run Analysis"):
                 try:

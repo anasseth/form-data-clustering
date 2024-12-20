@@ -184,6 +184,9 @@ def cluster_analysis(data, min_size, max_size):
         
         cluster_labels = balanced_clustering(reduced_data, optimal_k)
         
+        # Add cluster labels to the original data
+        data['Cluster'] = cluster_labels
+        
         # Calculate final metrics
         update_progress(0.95, "Calculating final metrics...")
         silhouette_avg = silhouette_score(reduced_data, cluster_labels)
