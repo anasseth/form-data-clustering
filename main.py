@@ -214,6 +214,7 @@ if data_file and meta_file:
 
         # Display cluster visualization
         st.header("Visualization")
+        st.text("Dataset (after preprocessing) likely has many dimensions (features), which are not directly visualizable. t-SNE is a dimensionality reduction technique used to reduce the data to a lower-dimensional space, typically 2D or 3D, for visualization")
         visualize_clusters(clustered_data, processed_data, kmeans_model)
         
         # Show data points per cluster in horizontal format
